@@ -9,6 +9,7 @@ pipeline {
        
         stage('Run Tests') {
             steps {
+                sh 'docker buildx prune -f'
                 sh 'docker build -t robot-saucedemo .'
                 sh 'mkdir -p results'
                 sh 'docker run --rm -v ${WORKSPACE}/results:/app/results robot-saucedemo'
