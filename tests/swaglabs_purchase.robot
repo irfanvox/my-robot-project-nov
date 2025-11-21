@@ -13,15 +13,18 @@ TC_01 - Complete E2E Purchase flow
 	[Tags]    E2E    regression
     # Create ChromeOptions object using Python
     ${options}=    Evaluate    sys.modules['selenium.webdriver'].ChromeOptions()    sys, selenium.webdriver
-    Call Method    ${options}    add_argument    --start-maximized
-    Call Method    ${options}    add_argument    --disable-infobars
+    Call Method    ${options}    add_argument    --headless=new
+    Call Method    ${options}    add_argument    --no-sandbox
+    Call Method    ${options}    add_argument    --disable-dev-shm-usage
+    Call Method    ${options}    add_argument    --disable-gpu
+    Call Method    ${options}    add_argument    --window-size=1920,1080
     Call Method    ${options}    add_experimental_option    excludeSwitches    ${{["enable-automation"]}}
     Call Method    ${options}    add_experimental_option    useAutomationExtension    ${False}
 
     ${prefs}=    Create Dictionary
     ...    credentials_enable_service=${False}
     ...    profile.password_manager_enabled=${False}
-    ...    profile.password_manager_leak_detection=${False}    # ← THIS IS THE ONE THAT KILLS YOUR POPUP
+    ...    profile.password_manager_leak_detection=${False}
     ...    autofill.profile_enabled=${False}
     ...    autofill.credit_card_enabled=${False}
 
