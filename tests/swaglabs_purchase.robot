@@ -29,7 +29,7 @@ TC_01 - Complete E2E Purchase flow
     ...    autofill.credit_card_enabled=${False}
 
     Call Method    ${options}    add_experimental_option    prefs    ${prefs}
-    Open Browser    ${URL}    ${BROWSER}    options=${options}
+    Open Browser    ${URL}    chrome    options=${options}
 
 	Maximize Browser Window 
 	
