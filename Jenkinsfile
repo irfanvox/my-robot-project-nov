@@ -20,8 +20,8 @@ pipeline {
 
     post {
         always {
-            archiveArtifacts artifacts: 'results/*.xml, results/*.html', allowEmptyArchive: true
-            robot results
+            archiveArtifacts artifacts: 'results/**', allowEmptyArchive: true
+            robot outputPath: 'results'
         }
     }
 }
