@@ -1,5 +1,6 @@
 *** Settings ***
 Library    SeleniumLibrary
+Library    OperatingSystem
 
 *** Variables ***
 ${URL}             https://www.saucedemo.com/
@@ -10,7 +11,7 @@ ${INVALID_USER}    locked_out_user
 
 *** Test Cases ***
 TC_01 - Complete E2E Purchase flow
-    [Tags]    E2E    regression
+    [Tags]    E2E regression
     Open SauceDemo With Headless Chrome
     Login    ${USERNAME}    ${PASSWORD}
     Sort Products High To Low
@@ -32,32 +33,24 @@ TC002 - Negative Login Test
 
 *** Keywords ***
 Open SauceDemo With Headless Chrome
-    ${options}=    Evaluate    sys.modules['selenium.webdriver'].ChromeOptions()    sys, selenium.webdriver
-    Call Method    ${options}    add_argument    --headless=chrome
-    Call Method    ${options}    add_argument    --no-sandbox
-    Call Method    ${options}    add_argument    --disable-dev-shm-usage
-    Call Method    ${options}    add_argument    --disable-gpu
-    Call Method    ${options}    add_argument    --remote-debugging-port=9222
-    Call Method    ${options}    add_argument    --window-size=1920,1080
-    Call Method    ${options}    add_experimental_option    excludeSwitches    ${{["enable-automation"]}}
-    Call Method    ${options}    add_experimental_option    useAutomationExtension    ${False}
+    ${chrome_options}=    Evaluate    sys.modules['selenium.webdriver'].ChromeOptions()    sys, selenium.webdriver
+    Call Method    ${chrome_options}    add_argument    --headless=new      # ← FIXED
+    Call Method    ${chrome_options}    add_argument    --no-sandbox
+    Call Method    ${chrome_options}    add_argument    --disable-dev-shm-usage
+    Call Method    ${chrome_options}    add_argument    --window-size=1920,1080
 
-    ${prefs}=    Create Dictionary
-    ...    credentials_enable_service=${False}
-    ...    profile.password_manager_enabled=${False}
-    ...    profile.password_manager_leak_detection=${False}
-    ...    autofill.profile_enabled=${False}
-    ...    autofill.credit_card_enabled=${False}
-    Call Method    ${options}    add_experimental_option    prefs    ${prefs}
+    ${service}=    Evaluate    sys.modules['selenium.webdriver.chrome.service'].Service()    sys, selenium.webdriver.chrome.service
+    ${driver}=     Evaluate    sys.modules['webdriver_manager.chrome'].ChromeDriverManager().install()    webdriver_manager.chrome
+    Call Method    ${service}    __init__    path=${driver}
 
-    Open Browser    ${URL}    chrome    options=${options}
-    # No Maximize Browser Window needed in headless with window-size
+    Create Webdriver    Chrome    service=${service}    options=${chrome_options}
+    Go To    ${URL}
 
 Login
     [Arguments]    ${user}    ${pass}
-    Input Text     id=user-name    ${user}
-    Input Text     id=password     ${pass}
-    Click Button   id=login-button
+    Input Text    id=user-name    ${user}
+    Input Text    id=password     ${pass}
+    Click Button  id=login-button
     Wait Until Page Contains Element    xpath=//div[@id="inventory_container"]    10s
 
 Sort Products High To Low
@@ -89,12 +82,14 @@ Go To Cart And Verify Items
 
 Checkout And Complete Purchase
     Click Button    id=checkout
-    Input Text      id=first-name     Irfan
-    Input Text      id=last-name      shaik
-    Input Text      id=postal-code    500055
-    Click Button    id=continue               # ← fixed: it's a <button>, not <input>
+    Input Text    id=first-name     Irfan
+    Input Text    id=last-name      shaik
+    Input Text    id=postal-code    500055
+    Click Button    id=continue
     Element Should Contain    xpath=//div[@class="summary_total_label"]    Total
     Click Button    id=finish
+
+Verify Order Success
     Element Should Contain    xpath=//h2[normalize-space()="Thank you for your order!"]    Thank you for your order!
 
 Wait For Page Fully Loaded
