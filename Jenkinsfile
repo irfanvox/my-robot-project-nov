@@ -1,14 +1,12 @@
 pipeline {
     agent any
-
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/irfanvox/my-robot-project-nov/'  
+                git branch: 'main', url: 'https://github.com/irfanvox/my-robot-project-nov/'
             }
         }
-
-        
+       
         stage('Run Tests') {
             steps {
                 sh 'docker build -t robot-saucedemo .'
@@ -16,7 +14,7 @@ pipeline {
                 sh 'docker run --rm -v ${WORKSPACE}/results:/app/results robot-saucedemo'
             }
         }
-
+    }
     post {
         always {
             archiveArtifacts artifacts: 'results/**', allowEmptyArchive: true
