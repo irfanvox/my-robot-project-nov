@@ -8,15 +8,14 @@ pipeline {
             }
         }
 
-        stage('Run Robot Tests') {
+        
+        stage('Run Tests') {
             steps {
-                sh '''
-                docker build -t robot-test .
-                docker run --rm -v ${WORKSPACE}/results:/app/results robot-test
-                '''
+                sh 'docker build -t robot-saucedemo .'
+                sh 'mkdir -p results'
+                sh 'docker run --rm -v ${WORKSPACE}/results:/app/results robot-saucedemo'
             }
         }
-    }
 
     post {
         always {
