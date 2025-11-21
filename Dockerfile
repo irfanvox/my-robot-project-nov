@@ -21,5 +21,5 @@ RUN apt-get update && apt-get install -y \
 COPY . .
 
 # Run in headless mode + disable GPU + no sandbox (CI needs this)
-ENV ROBOT_OPTIONS=--variable BROWSER:chrome --variable HEADLESS:True
+#ENV ROBOT_OPTIONS=--variable BROWSER:chrome --variable HEADLESS:True
 CMD ["bash", "robot-docker.sh"]
