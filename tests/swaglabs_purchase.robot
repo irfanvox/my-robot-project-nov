@@ -41,6 +41,8 @@ Open SauceDemo With Headless Chrome
     Call Method    ${chrome_options}    add_argument    --window-size\=1920,1080
     Call Method    ${chrome_options}    add_argument    --disable-features\=PasswordLeakDetection
     Call Method    ${chrome_options}    add_argument    --disable-features\=SafeBrowsing
+    Call Method    ${chrome_options}    add_argument    --disable-features\=PasswordLeakDetection
+    Call Method    ${chrome_options}    add_argument    --disable-features\=SafeBrowsing
     ${prefs}=    Create Dictionary    credentials_enable_service=${False}    profile.password_manager_enabled=${False}
     Call Method    ${chrome_options}    add_experimental_option    prefs    ${prefs}
     Open Browser    ${URL}    chrome    options=${chrome_options}
@@ -74,8 +76,13 @@ Add Items To Cart
 
 Verify Cart Badge
     [Arguments]    ${expected}
-    # UPDATED: Waits for the badge to actually render before checking text
-    Wait Until Element Contains    xpath=//span[@class="shopping_cart_badge"]    ${expected}    10s
+    ${locator}=    Set Variable    xpath=//span[@class="shopping_cart_badge"]
+    
+    # CRITICAL FIX 1: Wait for the element to physically appear in the DOM (up to 10s)
+    Wait Until Page Contains Element    ${locator}    10s
+    
+    # CRITICAL FIX 2: Wait for the correct text to appear inside the element
+    Wait Until Element Contains    ${locator}    ${expected}    5s
 
 Go To Cart And Verify Items
     Click Link    xpath=//a[@class="shopping_cart_link"]
