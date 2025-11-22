@@ -38,7 +38,7 @@ Open SauceDemo With Headless Chrome
     ${chrome_options}=    Evaluate    sys.modules['selenium.webdriver'].ChromeOptions()    sys, selenium.webdriver
     
     # --headless=new is the modern standard for Chrome 109+
-    Call Method    ${chrome_options}    add_argument    --headless=new
+    Call Method    ${chrome_options}    add_argument    --headless
     
     # --no-sandbox is REQUIRED for running as root in Docker
     Call Method    ${chrome_options}    add_argument    --no-sandbox
