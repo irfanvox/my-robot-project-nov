@@ -13,7 +13,6 @@ pipeline {
                 sh 'docker build -t robot-saucedemo .'
                 sh 'mkdir -p results'
                 sh 'docker run --rm -v ${WORKSPACE}/results:/app/results robot-saucedemo || true'
-                sh 'sudo chown -R $(id -u):$(id -g) results'
                 sh 'ls -la results/'
             }
         }
