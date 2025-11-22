@@ -33,18 +33,8 @@ TC002 - Negative Login Test
 
 *** Keywords ***
 Open SauceDemo With Headless Chrome
-    ${chrome_options}=    Evaluate    sys.modules['selenium.webdriver'].ChromeOptions()    sys, selenium.webdriver
-    Call Method    ${chrome_options}    add_argument    --headless
-    Call Method    ${chrome_options}    add_argument    --no-sandbox
-    Call Method    ${chrome_options}    add_argument    --disable-dev-shm-usage
-    Call Method    ${chrome_options}    add_argument    --window-size=1920,1080
-
-    ${service}=    Evaluate    sys.modules['selenium.webdriver.chrome.service'].Service()    sys, selenium.webdriver.chrome.service
-    ${driver}=     Evaluate    sys.modules['webdriver_manager.chrome'].ChromeDriverManager().install()    webdriver_manager.chrome
-    Call Method    ${service}    __init__    path=${driver}
-
-    Create Webdriver    Chrome    service=${service}    options=${chrome_options}
-    Go To    ${URL}
+    Open Browser    ${URL}    headlesschrome
+    Set Window Size    1920    1080
 
 Login
     [Arguments]    ${user}    ${pass}
