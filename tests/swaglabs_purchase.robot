@@ -1,6 +1,6 @@
 *** Settings ***
-Library    SeleniumLibrary
-Library    OperatingSystem
+Library     SeleniumLibrary
+Library     OperatingSystem
 
 *** Variables ***
 ${URL}             https://www.saucedemo.com/
@@ -24,7 +24,8 @@ TC_01 - Complete E2E Purchase flow
 
 TC002 - Negative Login Test
     [Tags]    negative
-    Open Browser    ${URL}    ${BROWSER}
+    # CHANGED: Use the keyword that sets up Headless options, otherwise this fails in Docker
+    Open SauceDemo With Headless Chrome
     Input Text    id=user-name    ${INVALID_USER}
     Input Text    id=password     ${PASSWORD}
     Click Button  id=login-button
@@ -33,8 +34,23 @@ TC002 - Negative Login Test
 
 *** Keywords ***
 Open SauceDemo With Headless Chrome
-    Open Browser    ${URL}    headlesschrome
-    Set Window Size    1920    1080
+    [Documentation]    Initializes Chrome with options required for Docker (Headless, No Sandbox)
+    ${chrome_options}=    Evaluate    sys.modules['selenium.webdriver'].ChromeOptions()    sys, selenium.webdriver
+    
+    # --headless=new is the modern standard for Chrome 109+
+    Call Method    ${chrome_options}    add_argument    --headless=new
+    
+    # --no-sandbox is REQUIRED for running as root in Docker
+    Call Method    ${chrome_options}    add_argument    --no-sandbox
+    
+    # --disable-dev-shm-usage prevents crashes due to limited shared memory in Docker
+    Call Method    ${chrome_options}    add_argument    --disable-dev-shm-usage
+    
+    # Sets the window size directly in options, avoiding the 'Set Window Size' keyword error
+    Call Method    ${chrome_options}    add_argument    --window-size\=1920,1080
+    
+    # Open Browser using the created options
+    Open Browser    ${URL}    chrome    options=${chrome_options}
 
 Login
     [Arguments]    ${user}    ${pass}
@@ -51,12 +67,10 @@ Open Social Link And Return
     Click Link    xpath=//a[text()="${link_text}"]
     Switch Window    NEW
     Wait For Page Fully Loaded
-    Press Keys    None    ESC
+    # Capturing screenshot to verify window switch worked
     Capture Page Screenshot    ${link_text.lower()}_screen.png
     Close Window
     Switch Window    MAIN
-    Press Keys    None    ESC
-    Press Keys    None    ESC
 
 Add Items To Cart
     Click Button    id=add-to-cart-sauce-labs-onesie
