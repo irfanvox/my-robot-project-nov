@@ -21,6 +21,7 @@ TC_01 - Complete E2E Purchase flow
     Go To Cart And Verify Items
     Checkout And Complete Purchase
     Verify Order Success
+    Close Browser
 
 TC002 - Negative Login Test
     [Tags]    negative
