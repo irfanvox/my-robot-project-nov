@@ -34,22 +34,29 @@ TC002 - Negative Login Test
 
 *** Keywords ***
 Open SauceDemo With Headless Chrome
-    [Documentation]    Initializes Chrome with options required for Docker (Headless, No Sandbox)
+    [Documentation]    Opens Chrome with options to BLOCK the 'Data Breach' popup.
     ${chrome_options}=    Evaluate    sys.modules['selenium.webdriver'].ChromeOptions()    sys, selenium.webdriver
     
-    # --headless=new is the modern standard for Chrome 109+
+    # --- 1. BASIC DOCKER & HEADLESS SETUP ---
+    # You mentioned --headless=new wasn't working, so we use standard --headless
     Call Method    ${chrome_options}    add_argument    --headless
-    
-    # --no-sandbox is REQUIRED for running as root in Docker
     Call Method    ${chrome_options}    add_argument    --no-sandbox
-    
-    # --disable-dev-shm-usage prevents crashes due to limited shared memory in Docker
     Call Method    ${chrome_options}    add_argument    --disable-dev-shm-usage
-    
-    # Sets the window size directly in options, avoiding the 'Set Window Size' keyword error
     Call Method    ${chrome_options}    add_argument    --window-size\=1920,1080
+    Call Method    ${chrome_options}    add_argument    --disable-gpu
     
-    # Open Browser using the created options
+    # --- 2. THE FIX FOR YOUR POPUP (Data Breach Warning) ---
+    # This specifically kills the "Password used in data breach" warning
+    Call Method    ${chrome_options}    add_argument    --disable-features\=PasswordLeakDetection
+    
+    # This ensures Safe Browsing doesn't block the "deceptive" standard_user credentials
+    Call Method    ${chrome_options}    add_argument    --disable-features\=SafeBrowsing
+    
+    # --- 3. DISABLE SAVE PASSWORD PROMPTS ---
+    ${prefs}=    Create Dictionary    credentials_enable_service=${False}    profile.password_manager_enabled=${False}    safebrowsing.enabled=${False}
+    Call Method    ${chrome_options}    add_experimental_option    prefs    ${prefs}
+    
+    # --- 4. OPEN BROWSER ---
     Open Browser    ${URL}    chrome    options=${chrome_options}
 
 Login
