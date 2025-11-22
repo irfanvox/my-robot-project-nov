@@ -21,11 +21,10 @@ TC_01 - Complete E2E Purchase flow
     Go To Cart And Verify Items
     Checkout And Complete Purchase
     Verify Order Success
-    Close Browser
+    [Teardown]    Close Browser
 
 TC002 - Negative Login Test
     [Tags]    negative
-    # CHANGED: Use the keyword that sets up Headless options, otherwise this fails in Docker
     Open SauceDemo With Headless Chrome
     Input Text    id=user-name    ${INVALID_USER}
     Input Text    id=password     ${PASSWORD}
@@ -35,29 +34,15 @@ TC002 - Negative Login Test
 
 *** Keywords ***
 Open SauceDemo With Headless Chrome
-    [Documentation]    Opens Chrome with options to BLOCK the 'Data Breach' popup.
     ${chrome_options}=    Evaluate    sys.modules['selenium.webdriver'].ChromeOptions()    sys, selenium.webdriver
-    
-    # --- 1. BASIC DOCKER & HEADLESS SETUP ---
-    # You mentioned --headless=new wasn't working, so we use standard --headless
     Call Method    ${chrome_options}    add_argument    --headless
     Call Method    ${chrome_options}    add_argument    --no-sandbox
     Call Method    ${chrome_options}    add_argument    --disable-dev-shm-usage
     Call Method    ${chrome_options}    add_argument    --window-size\=1920,1080
-    Call Method    ${chrome_options}    add_argument    --disable-gpu
-    
-    # --- 2. THE FIX FOR YOUR POPUP (Data Breach Warning) ---
-    # This specifically kills the "Password used in data breach" warning
     Call Method    ${chrome_options}    add_argument    --disable-features\=PasswordLeakDetection
-    
-    # This ensures Safe Browsing doesn't block the "deceptive" standard_user credentials
     Call Method    ${chrome_options}    add_argument    --disable-features\=SafeBrowsing
-    
-    # --- 3. DISABLE SAVE PASSWORD PROMPTS ---
-    ${prefs}=    Create Dictionary    credentials_enable_service=${False}    profile.password_manager_enabled=${False}    safebrowsing.enabled=${False}
+    ${prefs}=    Create Dictionary    credentials_enable_service=${False}    profile.password_manager_enabled=${False}
     Call Method    ${chrome_options}    add_experimental_option    prefs    ${prefs}
-    
-    # --- 4. OPEN BROWSER ---
     Open Browser    ${URL}    chrome    options=${chrome_options}
 
 Login
@@ -72,21 +57,25 @@ Sort Products High To Low
 
 Open Social Link And Return
     [Arguments]    ${link_text}
+    ${main_window}=    Switch Window    CURRENT
+    Execute Javascript    window.scrollTo(0, document.body.scrollHeight)
     Click Link    xpath=//a[text()="${link_text}"]
-    Switch Window    NEW
+    Wait Until Keyword Succeeds    10s    1s    Switch Window    NEW
     Wait For Page Fully Loaded
-    # Capturing screenshot to verify window switch worked
     Capture Page Screenshot    ${link_text.lower()}_screen.png
     Close Window
-    Switch Window    MAIN
+    Switch Window    ${main_window}
 
 Add Items To Cart
+    # Wait ensures the UI is interactive after the window switch
+    Wait Until Element Is Visible    id=add-to-cart-sauce-labs-onesie    10s
     Click Button    id=add-to-cart-sauce-labs-onesie
     Click Button    id=add-to-cart-sauce-labs-bike-light
 
 Verify Cart Badge
     [Arguments]    ${expected}
-    Element Text Should Be    xpath=//span[@class="shopping_cart_badge"]    ${expected}
+    # UPDATED: Waits for the badge to actually render before checking text
+    Wait Until Element Contains    xpath=//span[@class="shopping_cart_badge"]    ${expected}    10s
 
 Go To Cart And Verify Items
     Click Link    xpath=//a[@class="shopping_cart_link"]
